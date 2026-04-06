@@ -160,13 +160,14 @@ export class PacMan extends Phaser.GameObjects.Sprite {
   } {
     const { col, row } = this._nextTile(direction, maze);
     const center = this._tileCenter(col, row);
+    const currentCenter = this._tileCenter(this._col, this._row);
 
     if (direction === 'LEFT' && this._col === 0 && row === this._row) {
-      return { col, row, x: this.x - TILE_SIZE, y: center.y };
+      return { col, row, x: currentCenter.x - TILE_SIZE, y: currentCenter.y };
     }
 
     if (direction === 'RIGHT' && this._col === maze.cols - 1 && row === this._row) {
-      return { col, row, x: this.x + TILE_SIZE, y: center.y };
+      return { col, row, x: currentCenter.x + TILE_SIZE, y: currentCenter.y };
     }
 
     return { col, row, x: center.x, y: center.y };

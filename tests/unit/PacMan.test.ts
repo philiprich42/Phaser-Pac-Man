@@ -132,6 +132,27 @@ describe('PacMan', () => {
     expect(pacman.x).toBe(27 * 8 + 4);
   });
 
+  it('does not drift endlessly offscreen while crossing the left tunnel over multiple frames', () => {
+    walkableTiles.add(`27,${TUNNEL_ROW}`);
+    pacman.snapToTile(0, TUNNEL_ROW);
+    pacman.setNextDirection('LEFT');
+
+    const step = (8 / pacman.speed) / 4;
+    pacman.move(step, maze);
+    const firstX = pacman.x;
+    pacman.move(step, maze);
+    const secondX = pacman.x;
+    pacman.move(step, maze);
+    const thirdX = pacman.x;
+    pacman.move(step, maze);
+
+    expect(firstX).toBeLessThan(4);
+    expect(secondX).toBeLessThan(firstX);
+    expect(thirdX).toBeGreaterThanOrEqual(-4);
+    expect(pacman.col).toBe(27);
+    expect(pacman.x).toBe(27 * 8 + 4);
+  });
+
   it('wraps from the right tunnel exit back to the left side', () => {
     walkableTiles.add(`0,${TUNNEL_ROW}`);
     pacman.snapToTile(27, TUNNEL_ROW);
