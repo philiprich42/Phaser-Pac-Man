@@ -6,7 +6,7 @@ import { CLYDE_SCATTER_THRESHOLD, SCATTER_TARGETS } from '../config/Constants';
 
 export class Clyde extends Ghost {
   constructor(scene: Phaser.Scene, col: number, row: number) {
-    super(scene, col, row, 'Clyde', 0xffb852);
+    super(scene, col, row, 'Clyde', 'ghost-clyde-a', 'ghost-clyde');
   }
 
   /**

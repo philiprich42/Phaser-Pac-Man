@@ -5,7 +5,7 @@ import { Tile } from '../utils/PathFinder';
 
 export class Blinky extends Ghost {
   constructor(scene: Phaser.Scene, col: number, row: number) {
-    super(scene, col, row, 'Blinky', 0xff0000);
+    super(scene, col, row, 'Blinky', 'ghost-blinky-a', 'ghost-blinky');
   }
 
   /** Blinky always targets Pac-Man's current tile. */

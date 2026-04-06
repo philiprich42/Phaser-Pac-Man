@@ -54,6 +54,15 @@ describe('GhostAI', () => {
     expect(ai.isFlashing).toBe(false);
   });
 
+  it('enters eaten mode and stays there until enterHouse()', () => {
+    ai.enterFrightened();
+    ai.enterEaten();
+    ai.update(10);
+    expect(ai.mode).toBe('eaten');
+    ai.enterHouse();
+    expect(ai.mode).toBe('scatter');
+  });
+
   it('resets to scatter on reset()', () => {
     ai.update(7.1); // → chase
     ai.reset();

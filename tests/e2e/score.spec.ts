@@ -7,9 +7,9 @@ test.describe('Score persistence', () => {
     await page.evaluate(() => localStorage.removeItem('pacman_high_score'));
   });
 
-  test.todo('High score is written to localStorage after game over');
+  test.skip('High score is written to localStorage after game over', async () => {});
 
-  test.todo('High score is displayed on the menu screen');
+  test.skip('High score is displayed on the menu screen', async () => {});
 
   test('localStorage is accessible in the game context', async ({ page }) => {
     await page.goto('/');

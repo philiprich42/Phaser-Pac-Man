@@ -16,7 +16,7 @@ export class InputManager {
 
   private _swipeStart: { x: number; y: number } | null = null;
 
-  constructor(private scene: Phaser.Scene) {
+  constructor(scene: Phaser.Scene) {
     const kb = scene.input.keyboard!;
     this._keys = {
       up:    kb.addKey(Phaser.Input.Keyboard.KeyCodes.UP),

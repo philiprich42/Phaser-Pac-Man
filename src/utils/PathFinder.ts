@@ -38,19 +38,33 @@ export function getNeighbours(
     { col: tile.col, row: tile.row + 1 }, // down
   ];
 
-  return candidates.filter((t) => {
-    // Horizontal tunnel wrap
-    let col = t.col;
-    if (tunnelCols && t.row === tunnelRow) {
+  const neighbours: Tile[] = [];
+
+  for (const candidate of candidates) {
+    let col = candidate.col;
+
+    if (tunnelCols && candidate.row === tunnelRow) {
       if (col < 0) col = cols - 1;
       if (col >= cols) col = 0;
     }
 
-    if (col < 0 || col >= cols || t.row < 0 || t.row >= rows) return false;
-    if (!walkable[t.row * cols + col]) return false;
-    if (exclude && t.col === exclude.col && t.row === exclude.row) return false;
-    return true;
-  });
+    if (col < 0 || col >= cols || candidate.row < 0 || candidate.row >= rows) {
+      continue;
+    }
+
+    const normalized = { col, row: candidate.row };
+    if (!walkable[normalized.row * cols + normalized.col]) {
+      continue;
+    }
+
+    if (exclude && normalized.col === exclude.col && normalized.row === exclude.row) {
+      continue;
+    }
+
+    neighbours.push(normalized);
+  }
+
+  return neighbours;
 }
 
 /**

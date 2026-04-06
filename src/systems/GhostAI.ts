@@ -83,6 +83,16 @@ export class GhostAI {
     s.isFlashing = false;
   }
 
+  enterEaten(): void {
+    const s = this._state;
+    if (s.mode !== 'eaten') {
+      s.previousMode = s.mode === 'frightened' ? s.previousMode : s.mode;
+    }
+    s.mode = 'eaten';
+    s.frightenedElapsed = 0;
+    s.isFlashing = false;
+  }
+
   /** Call when ghost reaches the house after being eaten. */
   enterHouse(): void {
     this._exitFrightened();

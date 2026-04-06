@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ScoreManager } from '../../src/systems/ScoreManager';
-import { SCORE } from '../../src/config/Constants';
+import { getFruitPoints, SCORE } from '../../src/config/Constants';
 
 // Stub localStorage for test environment
 const localStorageMock = (() => {
@@ -99,5 +99,24 @@ describe('ScoreManager', () => {
     expect(sm.score).toBe(0);
     expect(sm.lives).toBe(3);
     expect(sm.level).toBe(1);
+  });
+
+  it('restores serialized score state', () => {
+    sm.restore({ score: 1230, lives: 2, level: 4 });
+    expect(sm.score).toBe(1230);
+    expect(sm.lives).toBe(2);
+    expect(sm.level).toBe(4);
+  });
+});
+
+describe('getFruitPoints', () => {
+  it('returns the correct early-level fruit values', () => {
+    expect(getFruitPoints(1)).toBe(SCORE.FRUIT.CHERRY);
+    expect(getFruitPoints(2)).toBe(SCORE.FRUIT.STRAWBERRY);
+    expect(getFruitPoints(5)).toBe(SCORE.FRUIT.APPLE);
+  });
+
+  it('clamps to key for later levels', () => {
+    expect(getFruitPoints(20)).toBe(SCORE.FRUIT.KEY);
   });
 });

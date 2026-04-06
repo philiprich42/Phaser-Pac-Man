@@ -59,6 +59,18 @@ describe('getNeighbours', () => {
     const hasExcluded = neighbours.some((n) => n.col === 2 && n.row === 1);
     expect(hasExcluded).toBe(false);
   });
+
+  it('normalizes tunnel neighbours to wrapped coordinates', () => {
+    const opts: PathFinderOptions = {
+      cols: 5,
+      rows: 5,
+      walkable: Array(25).fill(true),
+      tunnelCols: new Set([0, 4]),
+      tunnelRow: 2,
+    };
+    const neighbours = getNeighbours({ col: 0, row: 2 }, opts);
+    expect(neighbours).toContainEqual({ col: 4, row: 2 });
+  });
 });
 
 describe('nextTileTowards', () => {
@@ -82,7 +94,7 @@ describe('bfsPath', () => {
     const opts = openGrid();
     const path = bfsPath({ col: 0, row: 0 }, { col: 2, row: 0 }, opts);
     expect(path).not.toBeNull();
-    expect(path!.at(-1)).toEqual({ col: 2, row: 0 });
+    expect(path![path!.length - 1]).toEqual({ col: 2, row: 0 });
     expect(path!.length).toBe(2); // [col1,row0] and [col2,row0]
   });
 
@@ -97,8 +109,6 @@ describe('bfsPath', () => {
   });
 
   it('returns null when goal is unreachable', () => {
-    // Surround goal with walls
-    const opts = gridWithWall(3, 2);
     // Also block all entry points to col=4 row=0 corner indirectly — use a simpler case:
     // All walls except start
     const walkable = Array(25).fill(false);

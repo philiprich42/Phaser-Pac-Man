@@ -15,7 +15,7 @@ const DIR_DELTA: Record<string, [number, number]> = {
 
 export class Pinky extends Ghost {
   constructor(scene: Phaser.Scene, col: number, row: number) {
-    super(scene, col, row, 'Pinky', 0xffb8ff);
+    super(scene, col, row, 'Pinky', 'ghost-pinky-a', 'ghost-pinky');
   }
 
   /**

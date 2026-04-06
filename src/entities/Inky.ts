@@ -13,7 +13,7 @@ const DIR_DELTA: Record<string, [number, number]> = {
 
 export class Inky extends Ghost {
   constructor(scene: Phaser.Scene, col: number, row: number) {
-    super(scene, col, row, 'Inky', 0x00ffff);
+    super(scene, col, row, 'Inky', 'ghost-inky-a', 'ghost-inky');
   }
 
   /**

@@ -25,6 +25,25 @@ export const SCORE = {
   EXTRA_LIFE_THRESHOLD: 10000,
 } as const;
 
+const FRUIT_ORDER = [
+  SCORE.FRUIT.CHERRY,
+  SCORE.FRUIT.STRAWBERRY,
+  SCORE.FRUIT.PEACH,
+  SCORE.FRUIT.PEACH,
+  SCORE.FRUIT.APPLE,
+  SCORE.FRUIT.APPLE,
+  SCORE.FRUIT.GRAPES,
+  SCORE.FRUIT.GRAPES,
+  SCORE.FRUIT.GALAXIAN,
+  SCORE.FRUIT.GALAXIAN,
+  SCORE.FRUIT.BELL,
+  SCORE.FRUIT.BELL,
+] as const;
+
+export function getFruitPoints(level: number): number {
+  return FRUIT_ORDER[level - 1] ?? SCORE.FRUIT.KEY;
+}
+
 // Lives
 export const STARTING_LIVES = 3;
 

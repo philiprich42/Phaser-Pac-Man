@@ -2,6 +2,12 @@ import { SCORE, STARTING_LIVES } from '../config/Constants';
 
 const HIGH_SCORE_KEY = 'pacman_high_score';
 
+export interface ScoreState {
+  score: number;
+  lives: number;
+  level: number;
+}
+
 export class ScoreManager {
   private _score = 0;
   private _highScore = 0;
@@ -20,6 +26,13 @@ export class ScoreManager {
   get highScore(): number { return this._highScore; }
   get lives(): number { return this._lives; }
   get level(): number { return this._level; }
+  get state(): ScoreState {
+    return {
+      score: this._score,
+      lives: this._lives,
+      level: this._level,
+    };
+  }
 
   // --- Actions ---
 
@@ -74,6 +87,17 @@ export class ScoreManager {
     this._level = 1;
     this._ghostsEatenThisPellet = 0;
     this._extraLifeAwarded = false;
+  }
+
+  restore(state: ScoreState): void {
+    this._score = state.score;
+    this._lives = state.lives;
+    this._level = state.level;
+    this._ghostsEatenThisPellet = 0;
+    this._extraLifeAwarded = this._score >= SCORE.EXTRA_LIFE_THRESHOLD;
+    if (this._score > this._highScore) {
+      this._highScore = this._score;
+    }
   }
 
   // --- Private ---
