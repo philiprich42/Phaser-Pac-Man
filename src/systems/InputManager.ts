@@ -12,6 +12,10 @@ export class InputManager {
     down: Phaser.Input.Keyboard.Key;
     left: Phaser.Input.Keyboard.Key;
     right: Phaser.Input.Keyboard.Key;
+    w: Phaser.Input.Keyboard.Key;
+    a: Phaser.Input.Keyboard.Key;
+    s: Phaser.Input.Keyboard.Key;
+    d: Phaser.Input.Keyboard.Key;
   };
 
   private _swipeStart: { x: number; y: number } | null = null;
@@ -23,6 +27,10 @@ export class InputManager {
       down:  kb.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN),
       left:  kb.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT),
       right: kb.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT),
+      w:     kb.addKey(Phaser.Input.Keyboard.KeyCodes.W),
+      a:     kb.addKey(Phaser.Input.Keyboard.KeyCodes.A),
+      s:     kb.addKey(Phaser.Input.Keyboard.KeyCodes.S),
+      d:     kb.addKey(Phaser.Input.Keyboard.KeyCodes.D),
     };
 
     // Touch / swipe
@@ -47,17 +55,17 @@ export class InputManager {
 
   /** Call once per frame. Returns the direction Pac-Man should attempt to move. */
   poll(): Direction {
-    if (Phaser.Input.Keyboard.JustDown(this._keys.up))    this._buffer('UP');
-    if (Phaser.Input.Keyboard.JustDown(this._keys.down))  this._buffer('DOWN');
-    if (Phaser.Input.Keyboard.JustDown(this._keys.left))  this._buffer('LEFT');
-    if (Phaser.Input.Keyboard.JustDown(this._keys.right)) this._buffer('RIGHT');
+    if (this._justPressed(this._keys.up, this._keys.w)) this._buffer('UP');
+    if (this._justPressed(this._keys.down, this._keys.s)) this._buffer('DOWN');
+    if (this._justPressed(this._keys.left, this._keys.a)) this._buffer('LEFT');
+    if (this._justPressed(this._keys.right, this._keys.d)) this._buffer('RIGHT');
 
     // Also allow held keys if no buffer pending
     if (this._buffered === 'NONE') {
-      if (this._keys.up.isDown)    this._buffer('UP');
-      if (this._keys.down.isDown)  this._buffer('DOWN');
-      if (this._keys.left.isDown)  this._buffer('LEFT');
-      if (this._keys.right.isDown) this._buffer('RIGHT');
+      if (this._held(this._keys.up, this._keys.w)) this._buffer('UP');
+      if (this._held(this._keys.down, this._keys.s)) this._buffer('DOWN');
+      if (this._held(this._keys.left, this._keys.a)) this._buffer('LEFT');
+      if (this._held(this._keys.right, this._keys.d)) this._buffer('RIGHT');
     }
 
     return this._buffered !== 'NONE' ? this._buffered : this._current;
@@ -81,5 +89,13 @@ export class InputManager {
 
   private _buffer(dir: Direction): void {
     this._buffered = dir;
+  }
+
+  private _justPressed(primary: Phaser.Input.Keyboard.Key, secondary: Phaser.Input.Keyboard.Key): boolean {
+    return Phaser.Input.Keyboard.JustDown(primary) || Phaser.Input.Keyboard.JustDown(secondary);
+  }
+
+  private _held(primary: Phaser.Input.Keyboard.Key, secondary: Phaser.Input.Keyboard.Key): boolean {
+    return primary.isDown || secondary.isDown;
   }
 }

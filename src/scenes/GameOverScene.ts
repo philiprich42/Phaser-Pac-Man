@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { GAME_WIDTH, GAME_HEIGHT } from '../config/Constants';
 import { ANIMS, TEXTURES } from '../config/VisualKeys';
+import { getAudioManager } from '../systems/AudioManager';
 
 interface GameOverData {
   score: number;
@@ -8,12 +9,18 @@ interface GameOverData {
 }
 
 export class GameOverScene extends Phaser.Scene {
+  private lastScore = 0;
+  private lastLevel = 1;
+
   constructor() {
     super({ key: 'GameOverScene' });
   }
 
   create(data: GameOverData): void {
+    getAudioManager(this.game).stopAll();
     const { score = 0, level = 1 } = data ?? {};
+    this.lastScore = score;
+    this.lastLevel = level;
 
     // Persist high score
     const previous = parseInt(localStorage.getItem('pacman_high_score') ?? '0', 10);
@@ -98,5 +105,14 @@ export class GameOverScene extends Phaser.Scene {
     this.input.keyboard!.once('keydown-SPACE', () => {
       this.scene.start('MenuScene');
     });
+  }
+
+  getDebugState(): { scene: string; score: number; level: number; highScore: string | null } {
+    return {
+      scene: this.scene.key,
+      score: this.lastScore,
+      level: this.lastLevel,
+      highScore: localStorage.getItem('pacman_high_score'),
+    };
   }
 }

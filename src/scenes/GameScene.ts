@@ -17,7 +17,8 @@ import { Inky } from '../entities/Inky';
 import { PacMan } from '../entities/PacMan';
 import { Pinky } from '../entities/Pinky';
 import { GhostAI, GhostMode } from '../systems/GhostAI';
-import { InputManager } from '../systems/InputManager';
+import { getAudioManager, AudioManager } from '../systems/AudioManager';
+import { InputManager, Direction } from '../systems/InputManager';
 import { MazeManager, TileType } from '../systems/MazeManager';
 import { ScoreManager } from '../systems/ScoreManager';
 
@@ -43,6 +44,7 @@ export class GameScene extends Phaser.Scene {
   private inputManager!: InputManager;
   private pacman!: PacMan;
   private ghostAI!: GhostAI;
+  private audio!: AudioManager;
   private blinky!: Blinky;
   private ghosts: Ghost[] = [];
 
@@ -67,6 +69,9 @@ export class GameScene extends Phaser.Scene {
 
   create(): void {
     this.score.reset();
+    this.audio = getAudioManager(this.game);
+    this.audio.unlock();
+    this.audio.stopAll();
     this.inputManager = new InputManager(this);
     this._createHud();
     this._buildActors();
@@ -85,10 +90,16 @@ export class GameScene extends Phaser.Scene {
     const deltaSeconds = delta / 1000;
     this.ghostAI.update(deltaSeconds);
     this._applySpeedMultipliers();
+    this._syncAudioState();
 
-    this.pacman.setNextDirection(this.inputManager.poll());
+    const requestedDirection = this.inputManager.poll();
+    this.pacman.setNextDirection(requestedDirection);
+    const directionBeforeMove = this.pacman.direction;
 
     const crossedTile = this.pacman.move(deltaSeconds, this.maze);
+    this._syncAudioState();
+    this._syncInputBuffer(requestedDirection, directionBeforeMove);
+
     if (crossedTile) {
       this._handleConsumedTile(crossedTile.col, crossedTile.row);
     }
@@ -164,6 +175,7 @@ export class GameScene extends Phaser.Scene {
     this.fruitSpawnMilestones.clear();
     this.eatenGhosts.clear();
     this.statusText.setVisible(false);
+    this.audio.stopAll();
     this._clearFruit();
     this._clearPopup();
 
@@ -173,6 +185,7 @@ export class GameScene extends Phaser.Scene {
     this._resetActorPositions();
     this._applySpeedMultipliers();
     this._updateGhostAppearance();
+    this._syncAudioState();
     this._updateHud();
   }
 
@@ -186,7 +199,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private _applySpeedMultipliers(): void {
-    const [pacmanNormal, pacmanFrightened, _pacmanDot, ghostNormal, ghostFrightened] =
+    const [pacmanNormal, pacmanFrightened, , ghostNormal, ghostFrightened] =
       getSpeedTable(this.score.level);
 
     this.pacman.setSpeedMultiplier(
@@ -292,7 +305,12 @@ export class GameScene extends Phaser.Scene {
       this.eatenGhosts.clear();
     } else {
       this.score.addDot();
+      if (this.ghostAI.mode !== 'frightened') {
+        this.audio.playWakaOnce();
+      }
     }
+
+    this._syncAudioState();
 
     this._maybeSpawnFruit();
 
@@ -342,6 +360,7 @@ export class GameScene extends Phaser.Scene {
 
     const points = getFruitPoints(this.score.level);
     this.score.addFruit(points);
+    this.audio.playFruit();
     this._showPopup(String(points), this.fruitSprite.x, this.fruitSprite.y - 10, '#ff2f4f');
     this._clearFruit();
   }
@@ -356,6 +375,7 @@ export class GameScene extends Phaser.Scene {
       if (this.ghostAI.mode === 'frightened' && !this.eatenGhosts.has(ghost)) {
         this.eatenGhosts.add(ghost);
         const points = this.score.addGhostEaten();
+        this.audio.playEatGhost();
         this._showPopup(String(points), ghost.x, ghost.y - 10, '#00ffff');
         this._applySpeedMultipliers();
         return false;
@@ -376,6 +396,8 @@ export class GameScene extends Phaser.Scene {
     this.isRespawning = true;
     this.score.loseLife();
     this.score.resetGhostCombo();
+    this.audio.stopAll();
+    this.audio.playDeath();
     this._clearFruit();
     this.statusText.setText('CAUGHT');
     this.statusText.setVisible(true);
@@ -398,6 +420,7 @@ export class GameScene extends Phaser.Scene {
       this._resetActorPositions();
       this._applySpeedMultipliers();
       this._updateGhostAppearance();
+      this._syncAudioState();
       this.statusText.setVisible(false);
       this.isRespawning = false;
     });
@@ -409,6 +432,8 @@ export class GameScene extends Phaser.Scene {
     this.statusText.setVisible(true);
     this.score.advanceLevel();
     this.score.resetGhostCombo();
+    this.audio.stopAll();
+    this.audio.playLevelClear();
     this._clearFruit();
     this.score.saveHighScore();
     this._updateHud();
@@ -450,5 +475,124 @@ export class GameScene extends Phaser.Scene {
     this.fruitTimer = null;
     this.fruitSprite?.destroy();
     this.fruitSprite = null;
+  }
+
+  private _syncInputBuffer(requestedDirection: Direction, directionBeforeMove: Direction): void {
+    if (this.inputManager.buffered === 'NONE') {
+      return;
+    }
+
+    if (this.pacman.direction === this.inputManager.buffered) {
+      this.inputManager.consumeBuffer();
+      return;
+    }
+
+    if (directionBeforeMove === this.pacman.direction && requestedDirection !== this.pacman.direction) {
+      this.inputManager.keepBuffer();
+      return;
+    }
+
+    if (this.pacman.direction === 'NONE' && requestedDirection !== 'NONE') {
+      this.inputManager.keepBuffer();
+    }
+  }
+
+  private _syncAudioState(): void {
+    if (this.ghostAI.mode === 'frightened') {
+      this.audio.stopWakaLoop();
+      this.audio.startPowerPelletLoop();
+      return;
+    }
+
+    this.audio.stopPowerPelletLoop();
+    if (this.pacman.direction === 'NONE') {
+      this.audio.stopWakaLoop();
+      return;
+    }
+
+    this.audio.startWakaLoop();
+  }
+
+  getDebugState(): {
+    scene: string;
+    score: number;
+    lives: number;
+    level: number;
+    mode: GhostMode;
+    remainingDots: number;
+    pacman: { col: number; row: number; x: number; y: number; direction: Direction };
+    ghosts: Array<{ name: string; col: number; row: number; x: number; y: number; eaten: boolean }>;
+    fruitVisible: boolean;
+    popupText: string | null;
+    statusText: string;
+    statusVisible: boolean;
+  } {
+    return {
+      scene: this.scene.key,
+      score: this.score.score,
+      lives: this.score.lives,
+      level: this.score.level,
+      mode: this.ghostAI.mode,
+      remainingDots: this.maze.remainingDots,
+      pacman: {
+        col: this.pacman.col,
+        row: this.pacman.row,
+        x: this.pacman.x,
+        y: this.pacman.y,
+        direction: this.pacman.direction,
+      },
+      ghosts: this.ghosts.map((ghost) => ({
+        name: ghost.name,
+        col: ghost.col,
+        row: ghost.row,
+        x: ghost.x,
+        y: ghost.y,
+        eaten: this.eatenGhosts.has(ghost),
+      })),
+      fruitVisible: !!this.fruitSprite,
+      popupText: this.popupText?.text ?? null,
+      statusText: this.statusText.text,
+      statusVisible: this.statusText.visible,
+    };
+  }
+
+  debugSetPacManTile(col: number, row: number): void {
+    this.pacman.snapToTile(col, row);
+    this._syncAudioState();
+  }
+
+  debugSetGhostTile(name: string, col: number, row: number): void {
+    const ghost = this.ghosts.find((candidate) => candidate.name === name);
+    if (!ghost) {
+      return;
+    }
+
+    ghost.snapToTile(col, row);
+    this.eatenGhosts.delete(ghost);
+    this._updateGhostAppearance();
+  }
+
+  debugSetScoreState(score: number, lives: number, level: number): void {
+    this.score.restore({ score, lives, level });
+    this.ghostAI.reset(level);
+    this._applySpeedMultipliers();
+    this._updateHud();
+  }
+
+  debugSetMode(mode: GhostMode): void {
+    this.ghostAI.debugSetMode(mode);
+    this._applySpeedMultipliers();
+    this._updateGhostAppearance();
+    this._syncAudioState();
+    this._updateHud();
+  }
+
+  debugSetFruitVisible(visible: boolean): void {
+    if (!visible) {
+      this._clearFruit();
+      return;
+    }
+
+    this._spawnFruit();
   }
 }

@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { ANIMS, TEXTURES } from '../config/VisualKeys';
+import { getAudioManager } from '../systems/AudioManager';
 
 export class BootScene extends Phaser.Scene {
   constructor() {
@@ -33,6 +34,7 @@ export class BootScene extends Phaser.Scene {
   create(): void {
     this._createTextures();
     this._createAnimations();
+    getAudioManager(this.game);
     this.scene.start('MenuScene');
   }
 

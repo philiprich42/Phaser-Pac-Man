@@ -1,13 +1,19 @@
 import Phaser from 'phaser';
 import { GAME_WIDTH, GAME_HEIGHT } from '../config/Constants';
 import { ANIMS, TEXTURES } from '../config/VisualKeys';
+import { getAudioManager } from '../systems/AudioManager';
 
 export class MenuScene extends Phaser.Scene {
+  private highScoreValue = '0';
+
   constructor() {
     super({ key: 'MenuScene' });
   }
 
   create(): void {
+    const audio = getAudioManager(this.game);
+    audio.stopAll();
+
     const cx = GAME_WIDTH / 2;
     const bg = this.add.graphics();
     bg.fillGradientStyle(0x05060f, 0x05060f, 0x131a55, 0x131a55, 1);
@@ -50,6 +56,7 @@ export class MenuScene extends Phaser.Scene {
     ghosts[3].play(ANIMS.GHOST_CLYDE);
 
     const highScore = localStorage.getItem('pacman_high_score') ?? '0';
+    this.highScoreValue = highScore;
     this.add
       .text(cx, GAME_HEIGHT * 0.5, `HIGH SCORE  ${highScore}`, {
         fontSize: '12px',
@@ -59,7 +66,7 @@ export class MenuScene extends Phaser.Scene {
       .setOrigin(0.5);
 
     this.add
-      .text(cx, GAME_HEIGHT * 0.58, 'PHASE 5 BUILD', {
+      .text(cx, GAME_HEIGHT * 0.58, 'ARROWS / WASD / SWIPE', {
         fontSize: '10px',
         color: '#7de2ff',
         fontFamily: 'monospace',
@@ -94,7 +101,16 @@ export class MenuScene extends Phaser.Scene {
     });
 
     this.input.keyboard!.once('keydown-SPACE', () => {
+      audio.unlock();
+      audio.playIntro();
       this.scene.start('GameScene');
     });
+  }
+
+  getDebugState(): { scene: string; highScore: string } {
+    return {
+      scene: this.scene.key,
+      highScore: this.highScoreValue,
+    };
   }
 }

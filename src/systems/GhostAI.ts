@@ -121,4 +121,20 @@ export class GhostAI {
       isFlashing: false,
     };
   }
+
+  /** Minimal testing hook for E2E setup without driving timers. */
+  debugSetMode(mode: GhostMode): void {
+    const s = this._state;
+    s.mode = mode;
+    if (mode !== 'frightened') {
+      s.previousMode = mode;
+      s.frightenedElapsed = 0;
+      s.isFlashing = false;
+      return;
+    }
+
+    s.previousMode = s.previousMode === 'eaten' ? 'scatter' : s.previousMode;
+    s.frightenedElapsed = 0;
+    s.isFlashing = false;
+  }
 }
