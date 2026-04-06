@@ -18,12 +18,20 @@
         height: 100vh;
         overflow: hidden;
       }
+      #game-container {
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
       canvas {
         display: block;
       }
     </style>
   </head>
   <body>
+    <div id="game-container"></div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
