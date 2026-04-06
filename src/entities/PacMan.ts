@@ -85,7 +85,17 @@ export class PacMan extends Phaser.GameObjects.Sprite {
       if (step === distanceToTarget) {
         this._col = target.col;
         this._row = target.row;
-        this.setPosition(target.x, target.y);
+
+        if (this._direction === 'LEFT' && target.col === maze.cols - 1) {
+          this.setPosition(target.x + maze.cols * TILE_SIZE, target.y);
+        } else if (this._direction === 'RIGHT' && target.col === 0) {
+          this.setPosition(target.x - maze.cols * TILE_SIZE, target.y);
+        }
+
+        this.setPosition(
+          this._col * TILE_SIZE + TILE_SIZE / 2,
+          this._row * TILE_SIZE + TILE_SIZE / 2
+        );
         crossedTile = { col: this._col, row: this._row };
       }
     }

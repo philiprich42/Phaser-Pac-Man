@@ -75,7 +75,7 @@ export class GhostAI {
   /** Call when Pac-Man eats a power pellet. */
   enterFrightened(): void {
     const s = this._state;
-    if (s.mode !== 'eaten') {
+    if (s.mode !== 'eaten' && s.mode !== 'frightened') {
       s.previousMode = s.mode;
     }
     s.mode = 'frightened';

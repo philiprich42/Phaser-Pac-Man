@@ -42,6 +42,17 @@ describe('GhostAI', () => {
     expect(ai.mode).toBe('chase');
   });
 
+  it('refreshes frightened duration on a second power pellet without corrupting the restore mode', () => {
+    ai.update(7.1); // -> chase
+    ai.enterFrightened();
+    ai.update(3);
+    ai.enterFrightened(); // refresh timer while still frightened
+    ai.update(3.5);
+    expect(ai.mode).toBe('frightened');
+    ai.update(2.6);
+    expect(ai.mode).toBe('chase');
+  });
+
   it('isFlashing is true in the last 2 seconds of frightened', () => {
     ai.enterFrightened(); // duration 6s
     ai.update(4.1); // 4.1s elapsed → 1.9s remaining → flashing

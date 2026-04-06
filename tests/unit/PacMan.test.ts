@@ -129,5 +129,19 @@ describe('PacMan', () => {
     expect(crossed).toEqual({ col: 27, row: TUNNEL_ROW });
     expect(pacman.col).toBe(27);
     expect(pacman.row).toBe(TUNNEL_ROW);
+    expect(pacman.x).toBe(27 * 8 + 4);
+  });
+
+  it('wraps from the right tunnel exit back to the left side', () => {
+    walkableTiles.add(`0,${TUNNEL_ROW}`);
+    pacman.snapToTile(27, TUNNEL_ROW);
+
+    pacman.setNextDirection('RIGHT');
+    const crossed = pacman.move(8 / pacman.speed, maze);
+
+    expect(crossed).toEqual({ col: 0, row: TUNNEL_ROW });
+    expect(pacman.col).toBe(0);
+    expect(pacman.row).toBe(TUNNEL_ROW);
+    expect(pacman.x).toBe(4);
   });
 });
